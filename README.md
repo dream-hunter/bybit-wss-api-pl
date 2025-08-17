@@ -58,6 +58,4 @@ ETH(ERC20)  0xa43d3a2796285842c2496bf9aef5796f1c832cb5
 
 2025-08-11 - Project created
 
-
-
-2025-08-11 - Project created
+2025-08-11 - Added loglevel and severity feature
