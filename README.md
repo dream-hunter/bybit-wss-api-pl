@@ -8,7 +8,7 @@ This is the basic method getting data from bybit wss
 ### 1. Required software:
 
 ```
-sudo dnf/apt/pkg install perl cpanminus screen git
+sudo dnf/apt/pkg install perl cpanminus git
 ```
 
 ### 2. Perl modules:
