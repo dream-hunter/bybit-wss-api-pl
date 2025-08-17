@@ -22,22 +22,25 @@ my $api_secret = $ARGV[1];
 # Async Web Socket Client handler
 #################################
 while (1) {
-    my $timer        = undef;
-    my $pinger       = undef;
-    my $req_id;
-    $req_id->{'pub'} = 0;
-    $req_id->{'prv'} = 0;
-    my $client       = undef;
-    $client->{'pub'} = undef;
-    $client->{'prv'} = undef;
-    my $loop         = undef;
-
-    $heartbeat->{'pub'} = time+$heartbeat_interval;
-    $heartbeat->{'prv'} = time+$heartbeat_interval;
-
+    my $timer  = undef;
+    my $pinger = undef;
+    my $req_id = {
+        'pub'  => 0,
+        'prv'  => 0
+    };
+    my $client = {
+        'pub'  => 0,
+        'prv'  => 0
+    };
+    my $loop   = undef;
+    $heartbeat = {
+        'pub' => time+$heartbeat_interval,
+        'prv' => time+$heartbeat_interval
+    };
     $timer = IO::Async::Timer::Periodic->new(
         interval=> 10,
         on_tick => sub {
+# Heartbeat
             $heartbeat->{'err'} = undef;
             if ($heartbeat->{'pub'} < time) {
                 printf ("%s Public Heartbeat error %s < %s\n", strftime("%Y-%m-%d %H:%M:%S ", localtime), $heartbeat->{'pub'}, time) ;
@@ -59,7 +62,7 @@ while (1) {
                 $pinger->stop;
                 $loop->loop_stop;
             }
-# Here you can put any stuff, include subs, analyse etc
+# Heartbeat is fine so you can handle streams data, send REST API requests, analyse and perform trading
         }
     );
 
@@ -238,7 +241,6 @@ sub dataHandler {
                 } else {
                     print "with no success.\n";
                 }
-#                print Dumper $decoded;
             }
             when(/subscribe/) {
                 printf ("%s %s", strftime("%Y-%m-%d %H:%M:%S ",localtime), "Subscribed with ");
@@ -247,7 +249,6 @@ sub dataHandler {
                 } else {
                     print "with no success.\n";
                 }
-#                print Dumper $decoded;
             }
             default {
                 print Dumper $decoded;

@@ -8,7 +8,7 @@ To start public only stream:
 To start program with api key, use parameters:
 /usr/bin/env perl bybit-wss.pl <API_KEY> <API_SECRET>
 
-Of course you have to generate API Key in "Account"->"API" section on web-site
+Of course you have to generate API Key in "Account"->"API" section on Bybit web-site
 
 API Docs: https://bybit-exchange.github.io/docs/v5/ws/connect
 
