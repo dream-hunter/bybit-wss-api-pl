@@ -16,4 +16,4 @@ Enjoy!
 
 # Changelog
 
-2025-08-11 - Prpject created
+2025-08-11 - Project created
