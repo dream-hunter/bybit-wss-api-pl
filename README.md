@@ -24,16 +24,16 @@ cpanm IO::Async::Loop Net::Async::WebSocket::Client IO::Async::Timer::Periodic J
 git clone https://github.com/dream-hunter/bybit-wss-api-pl.git
 ```
 
-### 4. Start Application:
+## Start Application
 
-To start public-only stream:
+### 1.Public-only stream:
 
 ```
 cd bybit-wss-api-pl
 /usr/bin/env perl bybit-wss.pl
 ```
 
-To start program with api key and private-stream, use parameters:
+### 2. With API key and private-stream
 
 ```
 cd bybit-wss-api-pl
@@ -58,4 +58,4 @@ ETH(ERC20)  0xa43d3a2796285842c2496bf9aef5796f1c832cb5
 
 2025-08-11 - Project created
 
-2025-08-11 - Added loglevel and severity feature
+2025-08-17 - Added loglevel and severity feature
