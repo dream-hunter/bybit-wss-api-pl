@@ -13,3 +13,7 @@ Of course you have to generate API Key in "Account"->"API" section on Bybit web-
 API Docs: https://bybit-exchange.github.io/docs/v5/ws/connect
 
 Enjoy!
+
+# Changelog
+
+2025-08-11 - Prpject created
