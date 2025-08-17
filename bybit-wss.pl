@@ -11,6 +11,7 @@ use Digest::SHA qw(hmac_sha512_hex sha512_hex hmac_sha256_hex sha256_hex);
 
 use feature qw( switch );
 no warnings qw( experimental::smartmatch );
+our $loglevel = 3;
 
 my $host = "stream.bybit.com";
 my $port = "443";
@@ -43,19 +44,19 @@ while (1) {
 # Heartbeat
             $heartbeat->{'err'} = undef;
             if ($heartbeat->{'pub'} < time) {
-                printf ("%s Public Heartbeat error %s < %s\n", strftime("%Y-%m-%d %H:%M:%S ", localtime), $heartbeat->{'pub'}, time) ;
+                logMessage("Public Heartbeat error " . $heartbeat->{'pub'} . " < ". time . "\n", 1);
                 $heartbeat->{'err'} = 1;
             } else {
-                printf ("%s Public Heartbeat is fine %s > %s\n", strftime("%Y-%m-%d %H:%M:%S ", localtime), $heartbeat->{'pub'}, time) ;
+                logMessage("Public Heartbeat is fine " . $heartbeat->{'pub'} . " > ". time . "\n", 4);
             }
             if (defined $api_key && defined $api_secret && $heartbeat->{'prv'} < time) {
-                printf ("%s Private Heartbeat error %s < %s\n", strftime("%Y-%m-%d %H:%M:%S ", localtime), $heartbeat->{'prv'}, time) ;
+                logMessage("Private Heartbeat error " . $heartbeat->{'prv'} . " < ". time . "\n", 1);
                 $heartbeat->{'err'} = 1;
             } else {
-                printf ("%s Private Heartbeat is fine %s > %s\n", strftime("%Y-%m-%d %H:%M:%S ", localtime), $heartbeat->{'prv'}, time) ;
+                logMessage("Private Heartbeat is fine " . $heartbeat->{'prv'} . " > ". time . "\n", 4);
             }
             if (defined $heartbeat->{'err'} && $heartbeat->{'err'} == 1) {
-                printf ("%s Close connection...\n", strftime("%Y-%m-%d %H:%M:%S ", localtime));
+                logMessage("Close connection with errors...\n", 1);
                 $client->{'pub'}->close_now;
                 $client->{'prv'}->close_now;
                 $timer->stop;
@@ -76,7 +77,7 @@ while (1) {
                     "op"     => "ping"
                 };
                 my $req = encode_json($req_json);
-                printf ("%s Sending ping msg: %s\n", strftime("%Y-%m-%d %H:%M:%S ",localtime), $req) ;
+                logMessage("Sending ping msg: " . $req . "\n", 5);
                 $client->{$key}->send_text_frame($req);
             }
         }
@@ -124,7 +125,7 @@ while (1) {
            url => "wss://$host:$port/v5/private",
         )->get;
     }
-    printf ("%s Connected, go ahead...\n", strftime("%Y-%m-%d %H:%M:%S ", localtime));
+    logMessage("Connected, go ahead...\n", 3);
 #################################
 # Public subscription
 #################################
@@ -143,7 +144,7 @@ while (1) {
 # Private subscription
 #################################
     if (defined $api_key && defined $api_secret) {
-        printf ("%s API Key/Secret defined. Attempting to send private request...\n", strftime("%Y-%m-%d %H:%M:%S ", localtime));
+        logMessage("API Key/Secret defined. Attempting to send private request...\n", 3);
 # auth
         $req_id->{'prv'} ++;
         my $expires = (time + 3) * 1000;
@@ -157,7 +158,6 @@ while (1) {
                 "$signature"
             ]
         };
-#        print encode_json($datasend) . "\n";
         $client->{'prv'}->send_text_frame(encode_json($datasend));
 # Request
         $req_id->{'prv'} ++;
@@ -170,7 +170,7 @@ while (1) {
         };
         $client->{'prv'}->send_text_frame(encode_json($datasend));
     } else {
-        printf ("%s API Key/Secret not defined.\n", strftime("%Y-%m-%d %H:%M:%S ", localtime));
+        logMessage("API Key/Secret not defined.\n", 3);
     }
 #################################
 # Start main loop
@@ -179,8 +179,9 @@ while (1) {
 #################################
 # Wait and Restart
 #################################
+    logMessage("Wait 10 seconds before reconnect.\n", 2);
     sleep 10;
-    printf ("%s Start again\n", strftime("%Y-%m-%d %H:%M:%S ", localtime));
+    logMessage("Start again...\n", 2);
 }
 #################################
 # Subroutines
@@ -219,35 +220,31 @@ sub dataHandler {
     if (defined $decoded->{'op'}) {
         given($decoded->{'op'}) {
             when(/ping/) {
-                printf ("%s %s", strftime("%Y-%m-%d %H:%M:%S ",localtime), "Pong frame for public channel received ");
                 if ($decoded->{'success'}) {
-                    print "with success.\n";
+                    logMessage("Pong frame for public channel received with success.\n", 4);
                 } else {
-                    print "with no success.\n";
+                    logMessage("Pong frame for public channel received with no success.\n", 2);
                 }
             }
             when(/pong/) {
-                printf ("%s %s", strftime("%Y-%m-%d %H:%M:%S ",localtime), "Pong frame for private channel received ");
                 if ($decoded->{'args'}[0]) {
-                    print "with success.\n";
+                    logMessage("Pong frame for private channel received with success.\n", 4);
                 } else {
-                    print "with no success.\n";
+                    logMessage("Pong frame for private channel received with no success.\n", 2);
                 }
             }
             when(/auth/) {
-                printf ("%s %s", strftime("%Y-%m-%d %H:%M:%S ",localtime), "Authenticated with ");
                 if ($decoded->{'success'}) {
-                    print "with success.\n";
+                    logMessage("Authenticated with success.\n", 3);
                 } else {
-                    print "with no success.\n";
+                    logMessage("Authenticated with no success.\n", 2);
                 }
             }
             when(/subscribe/) {
-                printf ("%s %s", strftime("%Y-%m-%d %H:%M:%S ",localtime), "Subscribed with ");
                 if ($decoded->{'success'}) {
-                    print "with success.\n";
+                    logMessage("Subscribed with success.\n", 3);
                 } else {
-                    print "with no success.\n";
+                    logMessage("Subscribed with no success.\n", 2);
                 }
             }
             default {
@@ -258,3 +255,14 @@ sub dataHandler {
     }
     return undef;
 }
+
+sub logMessage {
+    my $string = $_[0];
+    my $severity = $_[1];
+    my @message = ('FATAL','ERROR','WARN','INFO','DEBUG','TRACE');
+    if (defined $severity && $severity >= 0 && $severity <= $loglevel) {
+        print strftime("%Y-%m-%d %H:%M:%S ", localtime);
+        print "\[$message[$severity]\] ";
+        print $string;
+    }
+};
